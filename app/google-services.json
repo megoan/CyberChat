@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1025102248468",
+    "firebase_url": "https://cyberx-abf97.firebaseio.com",
+    "project_id": "cyberx-abf97",
+    "storage_bucket": "cyberx-abf97.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1025102248468:android:e67611b898317ca1",
+        "android_client_info": {
+          "package_name": "com.cyberx.shmuel.cyberx"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1025102248468-dqa0ago3gipjdp6htspp8qvdv4kcqeeo.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "1025102248468-dqa0ago3gipjdp6htspp8qvdv4kcqeeo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoko2Q43NmXvxUA4kohq_Ro6ksrgXU6Z4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
