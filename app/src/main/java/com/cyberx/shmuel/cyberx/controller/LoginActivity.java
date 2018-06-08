@@ -7,11 +7,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.cyberx.shmuel.cyberx.BCrypt;
 import com.cyberx.shmuel.cyberx.R;
+import com.cyberx.shmuel.cyberx.model.MyPublicKey;
 import com.cyberx.shmuel.cyberx.model.User;
 import com.cyberx.shmuel.cyberx.model.UserMe;
 import com.google.firebase.database.DataSnapshot;
@@ -30,6 +32,8 @@ public class LoginActivity extends AppCompatActivity {
     Button test;
     ArrayList<User>users=new ArrayList<>();
     boolean foundUser=false;
+    LinearLayout linearLayout;
+    LinearLayout everything;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,10 +42,13 @@ public class LoginActivity extends AppCompatActivity {
         password=findViewById(R.id.password);
         login=findViewById(R.id.login);
         register=findViewById(R.id.register);
-
+        linearLayout=findViewById(R.id.prog);
+        everything=findViewById(R.id.everything);
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                linearLayout.setVisibility(View.VISIBLE);
+                everything.setVisibility(View.GONE);
                 getUserListFromFirebase();
             }
         });
@@ -64,15 +71,16 @@ public class LoginActivity extends AppCompatActivity {
                     User user = item.getValue(User.class);
                     String usernameText=username.getText().toString();
                     String passwordText=password.getText().toString();
-                    if(usernameText!=null && passwordText!=null && usernameText.equals(user.getUsername()) && (BCrypt.checkpw(passwordText, user.getPassword())))
+                    if(usernameText!=null && passwordText!=null && usernameText.equals(user.getUsername()) /*&& (BCrypt.checkpw(passwordText, user.getPassword()))*/)
                     {
-                        foundUser=true;
+                        new BackgroundAcceptRequest().execute(passwordText,user.getPassword(),usernameText,user.ID);
+                       /* foundUser=true;
                         Intent intent=new Intent(LoginActivity.this,MainScreenActivity.class);
                         intent.putExtra("username",usernameText);
                         intent.putExtra("id",user.ID);
                         UserMe.USERME.setUsername(usernameText);
                         UserMe.USERME.ID=user.ID;
-                        startActivity(intent);
+                        startActivity(intent);*/
                     }
                 }
                 if (!foundUser) {
@@ -86,4 +94,32 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    public class BackgroundAcceptRequest extends AsyncTask<String, Void, Boolean> {
+        String usern;
+        String useri;
+
+        @Override
+        protected Boolean doInBackground(String... strings) {
+            usern=strings[2];
+            useri=strings[3];
+            return BCrypt.checkpw(strings[0], strings[1]);
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            if(aBoolean)
+            {
+                foundUser=true;
+                Intent intent=new Intent(LoginActivity.this,MainScreenActivity.class);
+                intent.putExtra("username",usern);
+                intent.putExtra("id",useri);
+                UserMe.USERME.setUsername(usern);
+                UserMe.USERME.ID=useri;
+                startActivity(intent);
+                linearLayout.setVisibility(View.GONE);
+                everything.setVisibility(View.VISIBLE);
+            }
+            super.onPostExecute(aBoolean);
+        }
+    }
 }
