@@ -69,7 +69,7 @@ public class ChatRequestsFragment extends Fragment {
         return view1;
     }
     private void getRequests() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeAReceiver").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeAReceiver").child(UserMe.USERME.ID);
         database.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

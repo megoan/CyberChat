@@ -66,7 +66,7 @@ public class UserListActivity extends AppCompatActivity {
     }
 
     private void getRequests() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeASender").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
 
         database.addValueEventListener(new ValueEventListener() {
             @Override

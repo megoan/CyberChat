@@ -29,7 +29,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText password;
     Button login;
     Button register;
-    Button test;
+
     ArrayList<User>users=new ArrayList<>();
     boolean foundUser=false;
     LinearLayout linearLayout;
@@ -84,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 }
                 if (!foundUser) {
-                    Toast.makeText(getBaseContext(),"wrong inputs",Toast.LENGTH_LONG).show();
+                    //Toast.makeText(getBaseContext(),"wrong inputs",Toast.LENGTH_LONG).show();
                 }
             }
             @Override

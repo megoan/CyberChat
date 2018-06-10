@@ -156,7 +156,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
 
                 MyPublicKey publicKey=new MyPublicKey(key,UserMe.USERME.getUsername(),strings[0],UserMe.USERME.ID,strings[1]);
 
-                mDatabase = FirebaseDatabase.getInstance().getReference().child("keyexchangeTypeAReceiver");
+                mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeAReceiver");
                 final String keyId = mDatabase.push().getKey();
                 UserMe.keyList.add(keyId);
                 mDatabase.child(strings[1]).child(keyId).setValue(publicKey).addOnFailureListener(new OnFailureListener() {
@@ -164,7 +164,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
                     public void onFailure(@NonNull Exception e) {
                     }
                 });
-                mDatabase = FirebaseDatabase.getInstance().getReference().child("keyexchangeTypeASender");
+                mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeASender");
                 final String keyId2 = mDatabase.push().getKey();
                 //UserMe.keyList.add(keyId);
                 mDatabase.child(UserMe.USERME.ID).child(keyId).setValue(publicKey).addOnFailureListener(new OnFailureListener() {

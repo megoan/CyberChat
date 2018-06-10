@@ -211,7 +211,7 @@ public class MainScreenActivity extends AppCompatActivity {
     }
 
     private void getTheirRequests() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeAReceiver").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeAReceiver").child(UserMe.USERME.ID);
         database.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -238,7 +238,7 @@ public class MainScreenActivity extends AppCompatActivity {
     }
 
     private void sentAccepts() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeBSender").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeBSender").child(UserMe.USERME.ID);
 
         database.addValueEventListener(new ValueEventListener() {
             @Override
@@ -267,7 +267,7 @@ public class MainScreenActivity extends AppCompatActivity {
     }
 
     private void getRequests() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeASender").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
         database.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -307,7 +307,7 @@ public class MainScreenActivity extends AppCompatActivity {
         });
     }
     private void getAccepts() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeBReceiver").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeBReceiver").child(UserMe.USERME.ID);
 
         database.addValueEventListener(new ValueEventListener() {
             @Override
@@ -386,14 +386,6 @@ public class MainScreenActivity extends AppCompatActivity {
                 editor.putString(keys[0].senderID, new String(bobAesKey.getEncoded(),"ISO-8859-1"));
                 editor.apply();
 
-                DatabaseReference database = FirebaseDatabase.getInstance().getReference("mysharedKey").child(UserMe.USERME.ID);
-                final String userId = database.push().getKey();
-                database.child(userId).setValue(toHexString(aliceSharedSecret)).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-
-                    }
-                });
 
                 UserMe.finalAcceptedChats.add(keys[0].sender);
 

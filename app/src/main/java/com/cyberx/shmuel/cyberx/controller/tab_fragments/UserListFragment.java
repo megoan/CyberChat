@@ -102,7 +102,7 @@ public class UserListFragment extends Fragment {
     }
 
     private void sentAccepts() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeBSender").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeBSender").child(UserMe.USERME.ID);
 
         database.addValueEventListener(new ValueEventListener() {
             @Override
@@ -122,7 +122,7 @@ public class UserListFragment extends Fragment {
     }
 
     private void getAccepts() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeBReceiver").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeBReceiver").child(UserMe.USERME.ID);
         
         database.addValueEventListener(new ValueEventListener() {
             @Override
@@ -144,7 +144,7 @@ public class UserListFragment extends Fragment {
 
 
     private void getRequests() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keyexchangeTypeASender").child(UserMe.USERME.ID);
+        DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
         database.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

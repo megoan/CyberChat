@@ -192,14 +192,6 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
 
                 UserMe.userIAccepted.add(usernameReceiver);
 
-                DatabaseReference database = FirebaseDatabase.getInstance().getReference("mysharedKey").child(UserMe.USERME.ID);
-                final String userId = database.push().getKey();
-                database.child(userId).setValue(toHexString(bobSharedSecret)).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-
-                    }
-                });
 
 
 
@@ -225,7 +217,7 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            mDatabase = FirebaseDatabase.getInstance().getReference().child("keyexchangeTypeBReceiver");
+            mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeBReceiver");
             final String keyId = mDatabase.push().getKey();
 
             mDatabase.child(receiverID).child(keyId).setValue(publicKey).addOnFailureListener(new OnFailureListener() {
@@ -233,7 +225,7 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
                 public void onFailure(@NonNull Exception e) {
                 }
             });
-            mDatabase = FirebaseDatabase.getInstance().getReference().child("keyexchangeTypeBSender");
+            mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeBSender");
             final String keyId2 = mDatabase.push().getKey();
             UserMe.sentAcceptkeys.add(keyId2);
             mDatabase.child(UserMe.USERME.ID).child(keyId).setValue(publicKey).addOnFailureListener(new OnFailureListener() {

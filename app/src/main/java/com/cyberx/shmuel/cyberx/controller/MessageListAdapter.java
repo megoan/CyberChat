@@ -1,6 +1,8 @@
 package com.cyberx.shmuel.cyberx.controller;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
@@ -18,7 +20,11 @@ import java.nio.charset.Charset;
 import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -29,6 +35,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Created by User on 07/06/2018.
@@ -90,16 +97,18 @@ public class MessageListAdapter extends RecyclerView.Adapter {
 
         switch (holder.getItemViewType()) {
             case VIEW_TYPE_MESSAGE_SENT:
-                ((SentMessageHolder) holder).bind(message);
+                ((SentMessageHolder) holder).bind(message,position);
                 break;
             case VIEW_TYPE_MESSAGE_RECEIVED:
-                ((ReceivedMessageHolder) holder).bind(message);
+                ((ReceivedMessageHolder) holder).bind(message,position);
         }
     }
 
     private class SentMessageHolder extends RecyclerView.ViewHolder {
         TextView messageText, timeText;
         ImageView viewText;
+
+
         SentMessageHolder(View itemView) {
             super(itemView);
 
@@ -108,7 +117,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
             viewText=itemView.findViewById(R.id.viewText);
         }
 
-        void bind(final ChatMessage message) {
+        void bind(final ChatMessage message, final int position) {
             messageText.setText(message.getMessage());
 
             viewText.setOnClickListener(new View.OnClickListener() {
@@ -119,9 +128,24 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                         AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
                         aesParams.init(encodedParams);
                         Cipher aliceCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                        aliceCipher.init(Cipher.DECRYPT_MODE, UserMe.sharedKeys.get(message.getReceiverID()), aesParams);
-                        byte[] recovered = aliceCipher.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
-                        messageText.setText(new String(recovered,"ISO-8859-1"));
+                        if(position>0)
+                        {
+                            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+                            String sharedKey = preferences.getString(message.getReceiverID()+message.getChatNum(), null);
+                            if(sharedKey!=null)
+                            {
+                                byte[] encodedKey = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
+                                aliceCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(encodedKey, 0, 16, "AES"), aesParams);
+                                byte[] recovered = aliceCipher.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
+                                messageText.setText(new String(recovered,"ISO-8859-1"));
+                            }
+                        }
+                        else {
+                            aliceCipher.init(Cipher.DECRYPT_MODE, UserMe.sharedKeys.get(message.getReceiverID()), aesParams);
+                            byte[] recovered = aliceCipher.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
+                            messageText.setText(new String(recovered,"ISO-8859-1"));
+                        }
+
                     } catch (NoSuchAlgorithmException e) {
                         e.printStackTrace();
                     } catch (NoSuchPaddingException e) {
@@ -165,7 +189,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
             viewText=itemView.findViewById(R.id.viewText);
         }
 
-        void bind(final ChatMessage message) {
+        void bind(final ChatMessage message, final int position) {
             messageText.setText(message.getMessage());
 
 
@@ -173,11 +197,74 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                 @Override
                 public void onClick(View v) {
                     try {
+
+                        if(message.isChatType() && restNotMine(position))
+                        {
+                            byte[] encodedKey=null;
+                            byte[] encodedParams=message.getEncodedParams().getBytes(Charset.forName("ISO-8859-1"));
+                            AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
+                            aesParams.init(encodedParams);
+                            Cipher aliceCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+                            String sharedKey = preferences.getString(message.getSenderID()+message.getChatNum(), null);
+                            if(sharedKey!=null)
+                            {
+                                encodedKey  = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
+                                UserMe.sharedKeys.put(message.getSenderID()+message.getChatNum(),new SecretKeySpec(encodedKey, 0, 16, "AES"));
+                            }
+                            else {
+                                byte[] bobPubKeyEnc=message.getNewPublicKey().getBytes(Charset.forName("ISO-8859-1"));
+
+                                try {
+                                    KeyFactory aliceKeyFac = KeyFactory.getInstance("DH");
+                                    X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(bobPubKeyEnc);
+                                    PublicKey bobPubKey = aliceKeyFac.generatePublic(x509KeySpec);
+                                    System.out.println("ALICE: Execute PHASE1 ...");
+                                    UserMe.keyAgreementMap.get(message.getSenderID()).doPhase(bobPubKey, true);
+
+                                    byte[] aliceSharedSecret = UserMe.keyAgreementMap.get(message.getSenderID()).generateSecret();
+                                    SecretKeySpec aliceAesKey = new SecretKeySpec(aliceSharedSecret, 0, 16, "AES");
+
+                                    SharedPreferences preferences2 = PreferenceManager.getDefaultSharedPreferences(mContext);
+                                    SharedPreferences.Editor editor = preferences2.edit();
+                                    editor.putString(message.getSenderID() + message.getChatNum(), new String(aliceAesKey.getEncoded(), "ISO-8859-1"));
+                                    editor.apply();
+
+                                } catch (InvalidKeySpecException e) {
+                                    e.printStackTrace();
+                                }
+
+
+                            }
+                        }
+                        byte[] encodedKey=null;
                         byte[] encodedParams=message.getEncodedParams().getBytes(Charset.forName("ISO-8859-1"));
                         AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
                         aesParams.init(encodedParams);
                         Cipher aliceCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-                        aliceCipher.init(Cipher.DECRYPT_MODE, UserMe.sharedKeys.get(message.getSenderID()), aesParams);
+
+                        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+                        if(message.getChatNum()==1)
+                        {
+                            String sharedKey = preferences.getString(message.getSenderID(), null);
+                            if(sharedKey!=null)
+                            {
+                                encodedKey  = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
+                                UserMe.sharedKeys.put(message.getSenderID(),new SecretKeySpec(encodedKey, 0, 16, "AES"));
+                            }
+                        }
+                        else {
+                            String sharedKey = preferences.getString(message.getSenderID()+message.getChatNum(), null);
+                            if(sharedKey!=null)
+                            {
+                                encodedKey  = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
+                                UserMe.sharedKeys.put(message.getSenderID()+message.getChatNum(),new SecretKeySpec(encodedKey, 0, 16, "AES"));
+                            }
+
+                        }
+
+
+                        aliceCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(encodedKey, 0, 16, "AES"), aesParams);
                         byte[] recovered = aliceCipher.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
                         messageText.setText(new String(recovered,"ISO-8859-1"));
                     } catch (NoSuchAlgorithmException e) {
@@ -218,5 +305,16 @@ public class MessageListAdapter extends RecyclerView.Adapter {
 
 
         }
+    }
+
+    private boolean restNotMine(int position) {
+        for(int i=position;i<mMessageList.size();i++)
+        {
+            if(mMessageList.get(position).getSenderID().equals(UserMe.USERME.ID))
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
