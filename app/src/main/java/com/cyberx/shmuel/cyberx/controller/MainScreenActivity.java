@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -63,6 +64,7 @@ public class MainScreenActivity extends AppCompatActivity {
     boolean searchViewOn=false;
     public  String filter="";
     TabFragments tabFragments;
+    CollapsingToolbarLayout collapsingToolbarLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         searchClicked=false;
@@ -74,9 +76,10 @@ public class MainScreenActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main_screen);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        collapsingToolbarLayout=findViewById(R.id.collapsing_toolbar);
+
         setSupportActionBar(toolbar);
-
-
+        setTitle("");
 
 
         if (savedInstanceState!=null) {
@@ -117,11 +120,42 @@ public class MainScreenActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                int i=0;
+                i++;
+                if (searchClicked && check && tabsType == tabsTypeBeforeChange) {
+                    switch (tabsType) {
+                        case USERS: {
+                            UserListFragment.mAdapter.getFilter().filter(newText);
+                            break;
+                        }
+                        case CHAT_REQUESTS: {
+                            ChatRequestsFragment.mAdapter.getFilter().filter(newText);
+                            break;
+                        }
+
+                    }
+                } else {
+                    //UserListFragment.mAdapter.getFilter().filter(newText);
+                    //ChatRequestsFragment.mAdapter.getFilter().filter(newText);
+                }
+                return false;
+            }
+        });
         TabFragments.mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-                tabsTypeBeforeChange=TabsType.ALL;
+                //tabsTypeBeforeChange=TabsType.ALL;
                 searchView.setQuery("", false);
                 searchView.clearFocus();
                 searchView.setIconified(true);
@@ -144,11 +178,11 @@ public class MainScreenActivity extends AppCompatActivity {
                         searchView.setQueryHint("requests");
                         break;
                     }
-                    case 2:{
+                    /*case 2:{
                         tabsType=tabsTypeBeforeChange=TabsType.MYCHATS;
                         searchView.setQueryHint("chats");
                         break;
-                    }
+                    }*/
                 }
             }
 
@@ -173,7 +207,7 @@ public class MainScreenActivity extends AppCompatActivity {
     private void getUsers() {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("users");
 
-        database.addValueEventListener(new ValueEventListener() {
+        database.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 UserMe.usersUsingApp.clear();
@@ -220,6 +254,7 @@ public class MainScreenActivity extends AppCompatActivity {
                 for (final DataSnapshot item : dataSnapshot.getChildren()) {
                     MyPublicKey key = item.getValue(MyPublicKey.class);
                     UserMe.gotRequestkeys.add(key.sender);
+                    UserMe.usersKeys.add(key);
                     usersKeys.add(key);
 
                 }
@@ -247,6 +282,8 @@ public class MainScreenActivity extends AppCompatActivity {
                 for (final DataSnapshot item : dataSnapshot.getChildren()) {
                     MyPublicKey key = item.getValue(MyPublicKey.class);
                     UserMe.sentAcceptkeys.add(key.receiver);
+                    DatabaseReference databaseRemoveKeys = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeAReciever").child(UserMe.USERME.ID);
+                    databaseRemoveKeys.child(key.recieverID).setValue(null);
                 }
                 UserListFragment.mAdapter = new UserAdapter(MainScreenActivity.this, UserMe.usersUsingApp,UserMe.USERME.getUsername(),UserMe.USERME.ID);
                 if (UserListFragment.recyclerView!=null) {
@@ -260,11 +297,7 @@ public class MainScreenActivity extends AppCompatActivity {
             }
         });
     }
-    public void onClickFilter(View view) {
-    }
 
-    public void onClickSort(View view) {
-    }
 
     private void getRequests() {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
@@ -316,6 +349,8 @@ public class MainScreenActivity extends AppCompatActivity {
                 for (final DataSnapshot item : dataSnapshot.getChildren()) {
                     MyPublicKey key = item.getValue(MyPublicKey.class);
                     UserMe.gotAcceptkeys.add(key.sender);
+                    DatabaseReference databaseRemoveKeys = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
+                    databaseRemoveKeys.child(key.senderID).setValue(null);
                     if (UserMe.sharedKeys.get(key.senderID)==null) {
                         new BackgroundAcceptRequestM().execute(key);
                     }

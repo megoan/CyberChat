@@ -13,10 +13,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.cyberx.shmuel.cyberx.R;
+import com.cyberx.shmuel.cyberx.controller.tab_fragments.UserListFragment;
 import com.cyberx.shmuel.cyberx.model.MyPublicKey;
 import com.cyberx.shmuel.cyberx.model.User;
 import com.cyberx.shmuel.cyberx.model.UserMe;
@@ -33,16 +36,18 @@ import java.util.ArrayList;
 
 import javax.crypto.KeyAgreement;
 
-public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> {
+public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> implements Filterable {
 
     private LayoutInflater inflater;
     private Context context;
-    public ArrayList<User> users;
+    public static ArrayList<User> users;
     String usernameText;
     private ProgressDialog progDailog;
     String ID;
     boolean requested;
     private DatabaseReference mDatabase;
+    private MyFilter myFilter;
+
     public UserAdapter(Context context, ArrayList<User> users,String username,String ID) {
         inflater = LayoutInflater.from(context);
         this.context = context;
@@ -126,6 +131,12 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
         return users.size();
     }
 
+    @Override
+    public Filter getFilter() {
+        if(myFilter==null)myFilter=new MyFilter();
+        return myFilter;
+    }
+
     class MyViewHolder extends RecyclerView.ViewHolder{
         TextView username;
         public MyViewHolder(View itemView) {
@@ -157,9 +168,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
                 MyPublicKey publicKey=new MyPublicKey(key,UserMe.USERME.getUsername(),strings[0],UserMe.USERME.ID,strings[1]);
 
                 mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeAReceiver");
-                final String keyId = mDatabase.push().getKey();
-                UserMe.keyList.add(keyId);
-                mDatabase.child(strings[1]).child(keyId).setValue(publicKey).addOnFailureListener(new OnFailureListener() {
+                //final String keyId = mDatabase.push().getKey();
+                UserMe.keyList.add(UserMe.USERME.ID);
+                mDatabase.child(strings[1]).child(UserMe.USERME.ID).setValue(publicKey).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                     }
@@ -167,7 +178,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
                 mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeASender");
                 final String keyId2 = mDatabase.push().getKey();
                 //UserMe.keyList.add(keyId);
-                mDatabase.child(UserMe.USERME.ID).child(keyId).setValue(publicKey).addOnFailureListener(new OnFailureListener() {
+                mDatabase.child(UserMe.USERME.ID).child(strings[1]).setValue(publicKey).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                     }
@@ -199,6 +210,42 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
             super.onPostExecute(s);
  //           progDailog.dismiss();
 
+        }
+    }
+
+    private class MyFilter extends Filter {
+        FilterResults results;
+        @Override
+        protected FilterResults performFiltering(CharSequence charSequence) {
+            results = new FilterResults();
+            if (charSequence == null || charSequence.length() == 0) {
+                results.values = UserMe.usersUsingApp;
+                results.count = UserMe.usersUsingApp.size();
+            }
+            else
+            {
+                ArrayList<User> filteredUsers = new ArrayList<>();
+                for (User user : UserMe.usersUsingApp) {
+
+                    String fullAddress=(user.getUsername());
+                    if (fullAddress.contains( charSequence.toString().toLowerCase() )|| charSequence.toString().contains(user.getUsername())) {
+                        // if `contains` == true then add it
+                        // to our filtered list
+                        filteredUsers.add(user);
+                    }
+                }
+                results.values = filteredUsers;
+                results.count = filteredUsers.size();
+            }
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+            users=new ArrayList<User>((ArrayList<User>)results.values);
+            //UserListFragment.= (ArrayList<User>) results.values;
+            notifyDataSetChanged();
         }
     }
 }

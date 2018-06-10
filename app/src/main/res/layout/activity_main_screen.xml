@@ -21,6 +21,7 @@
         android:id="@+id/appBarLayout">
 
         <android.support.design.widget.CollapsingToolbarLayout
+
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -86,7 +87,7 @@
 />
         <!--android:iconifiedByDefault="false"-->
 
-        <Button
+     <!--   <Button
             android:id="@+id/sort"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -107,7 +108,7 @@
             android:background="@drawable/mbutton"
             android:onClick="onClickFilter"
             android:text="filter"
-            android:drawableLeft="@drawable/ic_filter"/>
+            android:drawableLeft="@drawable/ic_filter"/>-->
     </LinearLayout>
 
     <android.support.v4.view.ViewPager

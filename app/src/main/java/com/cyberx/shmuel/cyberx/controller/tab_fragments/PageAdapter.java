@@ -18,8 +18,8 @@ public class PageAdapter extends FragmentPagerAdapter {
                 return TabFragments.userListFragment;
             case 1:
                 return TabFragments.chatRequestsFragment;
-            case 2:
-                return TabFragments.myChatFragment;
+          /*  case 2:
+                return TabFragments.myChatFragment;*/
             default:
                 return null;
         }
@@ -27,7 +27,7 @@ public class PageAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 3;
+        return 2;
     }
 
     @Override
@@ -37,8 +37,8 @@ public class PageAdapter extends FragmentPagerAdapter {
                 return "USERS";
             case 1:
                 return "CHAT REQUESTS";
-            case 2:
-                return "MY CHATS";
+/*            case 2:
+                return "MY CHATS";*/
         }
         return null;
     }

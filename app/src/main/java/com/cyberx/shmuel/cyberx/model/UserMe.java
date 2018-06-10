@@ -27,7 +27,7 @@ public class UserMe {
     public static ArrayList<String>userIAccepted=new ArrayList<>();
 
     public static Map<String,KeyAgreement>keyAgreementMap=new HashMap<>();
-
+    public static ArrayList<MyPublicKey> usersKeys=new ArrayList<>();
     public static Map<String,ChatMessage> lastChatMessageWithUser=new HashMap<>();
     //public static UserAdapter userAdapter;
    // public static ChatRequestAdapter chatRequestAdapter;

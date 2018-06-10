@@ -197,7 +197,6 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                 @Override
                 public void onClick(View v) {
                     try {
-
                         if(message.isChatType() && restNotMine(position))
                         {
                             byte[] encodedKey=null;
@@ -233,8 +232,6 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                                 } catch (InvalidKeySpecException e) {
                                     e.printStackTrace();
                                 }
-
-
                             }
                         }
                         byte[] encodedKey=null;

@@ -61,7 +61,7 @@ public class UserListFragment extends Fragment {
     View view1;
     LayoutInflater inflater1;
     ViewGroup container1;
-    ArrayList<User> users=new ArrayList<>();
+    ArrayList<User>  users=new ArrayList<>();
     private String usernameReceiver;
 
     public UserListFragment() {
@@ -111,6 +111,8 @@ public class UserListFragment extends Fragment {
                 for (final DataSnapshot item : dataSnapshot.getChildren()) {
                     MyPublicKey key = item.getValue(MyPublicKey.class);
                     UserMe.sentAcceptkeys.add(key.receiver);
+                    DatabaseReference databaseRemoveKeys = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeAReciever").child(UserMe.USERME.ID);
+                    databaseRemoveKeys.child(key.recieverID).setValue(null);
                 }
             }
 
@@ -123,6 +125,7 @@ public class UserListFragment extends Fragment {
 
     private void getAccepts() {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeBReceiver").child(UserMe.USERME.ID);
+        final DatabaseReference databaseRemoveKeys = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
         
         database.addValueEventListener(new ValueEventListener() {
             @Override
@@ -131,6 +134,7 @@ public class UserListFragment extends Fragment {
                 for (final DataSnapshot item : dataSnapshot.getChildren()) {
                     MyPublicKey key = item.getValue(MyPublicKey.class);
                     UserMe.gotAcceptkeys.add(key.sender);
+                    databaseRemoveKeys.child(key.senderID).setValue(null);
                     new BackgroundAcceptRequest().execute(key);
                 }
             }

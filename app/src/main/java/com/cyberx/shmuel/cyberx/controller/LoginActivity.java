@@ -1,10 +1,12 @@
 package com.cyberx.shmuel.cyberx.controller;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -118,6 +120,11 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
                 linearLayout.setVisibility(View.GONE);
                 everything.setVisibility(View.VISIBLE);
+                View view = getCurrentFocus();
+                if (view != null) {
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
             }
             super.onPostExecute(aBoolean);
         }

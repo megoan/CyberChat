@@ -12,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.cyberx.shmuel.cyberx.R;
@@ -49,7 +51,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import static org.spongycastle.util.encoders.Hex.toHexString;
 
-public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.MyViewHolder> {
+public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.MyViewHolder> implements Filterable {
     public ArrayList<MyPublicKey>users=new ArrayList<>();
     Context context;
     private LayoutInflater inflater;
@@ -59,6 +61,8 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
     String usernameReceiverID;
     int position;
     private ProgressDialog progDailog;
+    private MyFilter myFilter;
+
     public ChatRequestAdapter(Context context,ArrayList<MyPublicKey> users) {
         this.users = users;
         this.context = context;
@@ -105,6 +109,12 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
     @Override
     public int getItemCount() {
         return users.size();
+    }
+
+    @Override
+    public Filter getFilter() {
+        if(myFilter==null)myFilter=new MyFilter();
+        return myFilter;
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder{
@@ -220,13 +230,21 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
             mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeBReceiver");
             final String keyId = mDatabase.push().getKey();
 
+
+
             mDatabase.child(receiverID).child(keyId).setValue(publicKey).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                 }
             });
+            DatabaseReference databaseRemoveKeys = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(receiverID);
+            databaseRemoveKeys.child(UserMe.USERME.ID).setValue(null);
+
             mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeBSender");
             final String keyId2 = mDatabase.push().getKey();
+
+            databaseRemoveKeys = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeAReceiver").child(UserMe.USERME.ID);
+            databaseRemoveKeys.child(receiverID).setValue(null);
             UserMe.sentAcceptkeys.add(keyId2);
             mDatabase.child(UserMe.USERME.ID).child(keyId).setValue(publicKey).addOnFailureListener(new OnFailureListener() {
                 @Override
@@ -259,4 +277,41 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
   //          progDailog.show();
         }
     }
+
+    private class MyFilter extends Filter {
+        FilterResults results;
+        @Override
+        protected FilterResults performFiltering(CharSequence charSequence) {
+            results = new FilterResults();
+            if (charSequence == null || charSequence.length() == 0) {
+                results.values =  UserMe.gotRequestkeys;
+                results.count =  UserMe.gotRequestkeys.size();
+            }
+            else
+            {
+                ArrayList<MyPublicKey> filteredkeys = new ArrayList<>();
+                for (MyPublicKey key :  UserMe.usersKeys) {
+
+                    
+                    if (key.sender.contains( charSequence.toString().toLowerCase() )|| charSequence.toString().contains(key.sender)) {
+                        // if `contains` == true then add it
+                        // to our filtered list
+                        filteredkeys.add(key);
+                    }
+                }
+                results.values = filteredkeys;
+                results.count = filteredkeys.size();
+            }
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+            users=new ArrayList<MyPublicKey>((ArrayList<MyPublicKey>)results.values);
+
+            notifyDataSetChanged();
+        }
+    }
+
 }
