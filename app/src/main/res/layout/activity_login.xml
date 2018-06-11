@@ -50,6 +50,7 @@
         android:hint="username"
         android:textColor="@color/colorAccent"
         android:inputType="textPersonName"
+
         android:ems="10"/>
     </android.support.design.widget.TextInputLayout>
     <android.support.design.widget.TextInputLayout
@@ -80,6 +81,7 @@
         android:layout_height="wrap_content"
         android:text="don't have account? register here"
         android:layout_marginTop="20dp"/>
+
 
     </LinearLayout>
 </LinearLayout>

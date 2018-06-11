@@ -24,7 +24,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.util.ArrayList;
+import java.util.Random;
+import java.util.UUID;
+
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 public class LoginActivity extends AppCompatActivity {
     EditText username;
@@ -32,6 +43,10 @@ public class LoginActivity extends AppCompatActivity {
     Button login;
     Button register;
 
+    Random random;
+    String key;
+    String passwords;
+    String id = UUID.randomUUID().toString();
     ArrayList<User>users=new ArrayList<>();
     boolean foundUser=false;
     LinearLayout linearLayout;
@@ -46,6 +61,7 @@ public class LoginActivity extends AppCompatActivity {
         register=findViewById(R.id.register);
         linearLayout=findViewById(R.id.prog);
         everything=findViewById(R.id.everything);
+
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -61,8 +77,11 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
     }
     private void getUserListFromFirebase() {
+
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("users");
 
         database.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -73,9 +92,36 @@ public class LoginActivity extends AppCompatActivity {
                     User user = item.getValue(User.class);
                     String usernameText=username.getText().toString();
                     String passwordText=password.getText().toString();
-                    if(usernameText!=null && passwordText!=null && usernameText.equals(user.getUsername()) /*&& (BCrypt.checkpw(passwordText, user.getPassword()))*/)
+                    if (user.getSalt()!=null) {
+                        byte[] saltbytes=user.getSalt().getBytes(Charset.forName("ISO-8859-1"));
+                        char[] pass=passwordText.toCharArray();
+                        try {
+                            SecretKey secretKey=LoginActivity.generateKey(pass,saltbytes);
+                            key=new String(secretKey.getEncoded(),Charset.forName("ISO-8859-1"));
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeySpecException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if(usernameText!=null && passwordText!=null && usernameText.equals(user.getUsername()) && key.equals(user.getPassword())/*&& (BCrypt.checkpw(passwordText, user.getPassword()))*/)
                     {
-                        new BackgroundAcceptRequest().execute(passwordText,user.getPassword(),usernameText,user.ID);
+                        //new BackgroundAcceptRequest().execute(passwordText,user.getPassword(),usernameText,user.ID);
+
+                        foundUser=true;
+                        Intent intent=new Intent(LoginActivity.this,MainScreenActivity.class);
+                        intent.putExtra("username",user.getUsername());
+                        intent.putExtra("id",user.ID);
+                        UserMe.USERME.setUsername(user.getUsername());
+                        UserMe.USERME.ID=user.ID;
+                        startActivity(intent);
+                        linearLayout.setVisibility(View.GONE);
+                        everything.setVisibility(View.VISIBLE);
+                        View view = getCurrentFocus();
+                        if (view != null) {
+                            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                        }
                        /* foundUser=true;
                         Intent intent=new Intent(LoginActivity.this,MainScreenActivity.class);
                         intent.putExtra("username",usernameText);
@@ -102,9 +148,10 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(String... strings) {
-            usern=strings[2];
-            useri=strings[3];
-            return BCrypt.checkpw(strings[0], strings[1]);
+            //usern=strings[2];
+            //useri=strings[3];
+            //return BCrypt.checkpw(strings[0], strings[1]);
+            return true;
         }
 
         @Override
@@ -128,5 +175,19 @@ public class LoginActivity extends AppCompatActivity {
             }
             super.onPostExecute(aBoolean);
         }
+    }
+    public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        // Number of PBKDF2 hardening rounds to use. Larger values increase
+        // computation time. You should select a value that causes computation
+        // to take >100ms.
+        final int iterations = 200000;
+
+        // Generate a 256-bit key
+        final int outputKeyLength = 256;
+
+        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
+        KeySpec keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, outputKeyLength);
+        SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
+        return secretKey;
     }
 }

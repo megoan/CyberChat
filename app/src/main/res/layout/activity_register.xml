@@ -22,6 +22,7 @@
         android:hint="username"
         android:textColor="@color/colorAccent"
         android:inputType="textPersonName"
+
         android:ems="10"/>
     </android.support.design.widget.TextInputLayout>
     <android.support.design.widget.TextInputLayout

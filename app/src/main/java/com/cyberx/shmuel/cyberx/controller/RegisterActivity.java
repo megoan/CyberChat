@@ -14,12 +14,20 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.nio.charset.Charset;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.UUID;
+
+import javax.crypto.SecretKey;
+
 public class RegisterActivity extends AppCompatActivity {
     private EditText username;
     private EditText password;
     private EditText passwordConfirm;
     private Button register;
     private DatabaseReference mDatabase;
+    String BPpassword;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,10 +39,22 @@ public class RegisterActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String usernameString = username.getText().toString();
                 String passwordString = password.getText().toString();
+                String salt = UUID.randomUUID().toString();
+                byte[] saltbytes=salt.getBytes(Charset.forName("ISO-8859-1"));
+                char[] passwordBytes = password.getText().toString().toCharArray();
+                try {
+                    SecretKey secretKey=LoginActivity.generateKey(passwordBytes,saltbytes);
+                    BPpassword=new String(secretKey.getEncoded(),Charset.forName("ISO-8859-1"));
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                } catch (InvalidKeySpecException e) {
+                    e.printStackTrace();
+                }
+
                 String passwordConfirmString = passwordConfirm.getText().toString();
                 if (usernameString != null && passwordString != null && passwordConfirmString != null && passwordString.equals(passwordConfirmString)) {
                     // Hash a password for the first time
-                    String hashed = BCrypt.hashpw(passwordString, BCrypt.gensalt());
+                   // String hashed = BCrypt.hashpw(passwordString, BCrypt.gensalt());
 
 //                    // gensalt's log_rounds parameter determines the complexity
 //                    // the work factor is 2**log_rounds, and the default is 10
@@ -47,7 +67,7 @@ public class RegisterActivity extends AppCompatActivity {
 //                    else
 //                        System.out.println("It does not match");
 //                    String hashedPassword=Sha1.getHash(passwordString);
-                    User user = new User(usernameString, hashed);
+                    User user = new User(usernameString, BPpassword,salt);
                     mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
                     final String userId = mDatabase.push().getKey();
                     mDatabase.child(userId).setValue(user).addOnSuccessListener(new OnSuccessListener<Void>() {
