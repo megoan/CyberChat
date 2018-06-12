@@ -197,6 +197,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                 @Override
                 public void onClick(View v) {
                     try {
+                        //if the message we clicked is a response and the rest of the messages aren't mine
                         if(message.isChatType() && restNotMine(position))
                         {
                             byte[] encodedKey=null;
@@ -205,13 +206,14 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                             aesParams.init(encodedParams);
                             Cipher aliceCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
                             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-                            String sharedKey = preferences.getString(message.getSenderID()+message.getChatNum(), null);
+                            String sharedKey = preferences.getString(message.getSenderID()+ message.getChatNum(), null);
+                            //if we created the shared key for this message
                             if(sharedKey!=null)
                             {
                                 encodedKey  = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
                                 UserMe.sharedKeys.put(message.getSenderID()+message.getChatNum(),new SecretKeySpec(encodedKey, 0, 16, "AES"));
                             }
-                            else {
+                            else {//we have to create shared key
                                 byte[] bobPubKeyEnc=message.getNewPublicKey().getBytes(Charset.forName("ISO-8859-1"));
 
                                 try {
@@ -241,6 +243,8 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                         Cipher aliceCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
 
                         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+
+                        //if its the first message
                         if(message.getChatNum()==1)
                         {
                             String sharedKey = preferences.getString(message.getSenderID(), null);
@@ -259,7 +263,6 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                             }
 
                         }
-
 
                         aliceCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(encodedKey, 0, 16, "AES"), aesParams);
                         byte[] recovered = aliceCipher.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));

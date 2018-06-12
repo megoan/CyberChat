@@ -17,7 +17,7 @@ public class DHKeyAgreement2 {
 
 
         /*
-         * Alice creates her own DH key pair with 2048-bit key size
+         * Alice creates her own DH key pair with 512-bit key size
          */
         System.out.println("ALICE: Generate DH keypair ...");
         KeyPairGenerator aliceKpairGen = KeyPairGenerator.getInstance("DH");
@@ -73,6 +73,8 @@ public class DHKeyAgreement2 {
         KeyFactory aliceKeyFac = KeyFactory.getInstance("DH");
         x509KeySpec = new X509EncodedKeySpec(bobPubKeyEnc);
         PublicKey bobPubKey = aliceKeyFac.generatePublic(x509KeySpec);
+
+
         System.out.println("ALICE: Execute PHASE1 ...");
         aliceKeyAgree.doPhase(bobPubKey, true);
 
