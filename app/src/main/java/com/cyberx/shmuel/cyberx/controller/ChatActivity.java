@@ -103,11 +103,41 @@ public class ChatActivity extends AppCompatActivity {
                         String sharedKey = preferences.getString(chatWithID + UserMe.lastChatMessageWithUser.get(chatWithID).getChatNum(), null);
                         byte[] encodedKey = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
                         SecretKeySpec secretKeySpec = new SecretKeySpec(encodedKey, 0, 16, "AES");
-                        sendChatMessage(msg,sender,receiver,timestamp,newPublicKey,false,UserMe.lastChatMessageWithUser.get(chatWithID).getChatNum(),secretKeySpec,editText);
+
+                        //ENCRYPT MESSAGE
+                        String encodedParamsKeyString = null;
+                        try {
+                            Cipher bobCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                            bobCipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+                            byte[] ciphertext = bobCipher.doFinal(newPublicKey.getBytes(Charset.forName("ISO-8859-1")));
+
+                            // Retrieve the parameter that was used, and transfer it to Alice in
+                            // encoded format
+                            byte[] encodedParams = bobCipher.getParameters().getEncoded();
+                            newPublicKey = new String(ciphertext, "ISO-8859-1");
+                            encodedParamsKeyString = new String(encodedParams, "ISO-8859-1");
+                        } catch (NoSuchAlgorithmException e) {
+                            e.printStackTrace();
+                        } catch (NoSuchPaddingException e) {
+                            e.printStackTrace();
+                        } catch (InvalidKeyException e) {
+                            e.printStackTrace();
+                        } catch (IllegalBlockSizeException e) {
+                            e.printStackTrace();
+                        } catch (BadPaddingException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+
+                        sendChatMessage(msg,sender,receiver,timestamp,newPublicKey, encodedParamsKeyString, false,UserMe.lastChatMessageWithUser.get(chatWithID).getChatNum(),secretKeySpec,editText);
                         return;
                     }
                     else //their message is a request after we sent response (we send response)
                     {
+
+
                         byte[] recoveredkey=null;
                         byte[] encryptedKey=UserMe.lastChatMessageWithUser.get(chatWithID).getNewPublicKey().getBytes(Charset.forName("ISO-8859-1"));
                         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ChatActivity.this);
@@ -122,7 +152,7 @@ public class ChatActivity extends AppCompatActivity {
                         try {
                             Cipher aliceCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
                             AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
-                            aesParams.init(UserMe.lastChatMessageWithUser.get(chatWithID).getEncodedParams().getBytes(Charset.forName("ISO-8859-1")));
+                            aesParams.init(UserMe.lastChatMessageWithUser.get(chatWithID).getEncodedParamsKey().getBytes(Charset.forName("ISO-8859-1")));
                             aliceCipher.init(Cipher.DECRYPT_MODE, secretKeySpec, aesParams);
                             recoveredkey = aliceCipher.doFinal(encryptedKey);
                         } catch (NoSuchAlgorithmException e) {
@@ -140,7 +170,7 @@ public class ChatActivity extends AppCompatActivity {
                         } catch (BadPaddingException e) {
                             e.printStackTrace();
                         }
-                        getReturnKey(recoveredkey,msg,sender,receiver,timestamp,true,UserMe.lastChatMessageWithUser.get(chatWithID).getChatNum()+1,editText);
+                        getReturnKey(recoveredkey,msg,sender,receiver,timestamp,true,UserMe.lastChatMessageWithUser.get(chatWithID).getChatNum()+1,editText,secretKeySpec);
                         return;
                     }
                 }//i sent the last message
@@ -152,7 +182,7 @@ public class ChatActivity extends AppCompatActivity {
                         String sharedKey = preferences.getString(chatWithID + UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(), null);
                         byte[] encodedKey = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
                         SecretKeySpec secretKeySpec = new SecretKeySpec(encodedKey, 0, 16, "AES");
-                        sendChatMessage(msg,sender,receiver,timestamp,UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getNewPublicKey(),UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).isChatType(),UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(),secretKeySpec,editText);
+                        sendChatMessage(msg,sender,receiver,timestamp,UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getNewPublicKey(), UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getEncodedParamsKey(), UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).isChatType(),UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(),secretKeySpec,editText);
                         return;
                     }
                     else { //the message i sent was a request
@@ -160,17 +190,46 @@ public class ChatActivity extends AppCompatActivity {
                         String sharedKey = preferences.getString(chatWithID + UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(), null);
                         byte[] encodedKey = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
                         SecretKeySpec secretKeySpec = new SecretKeySpec(encodedKey, 0, 16, "AES");
-                        sendChatMessage(msg,sender,receiver,timestamp,UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getNewPublicKey(),UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).isChatType(),UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(),secretKeySpec,editText);
+                        sendChatMessage(msg,sender,receiver,timestamp,UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getNewPublicKey(), UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getEncodedParamsKey(), UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).isChatType(),UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(),secretKeySpec,editText);
                         return;
                     }
                 }
                 else if(UserMe.lastChatMessageWithUser.size() == 0)//sending first message
                 {
+
                     chatNum = 1; //first message number
                     chatType = false;//request type
                     newPublicKey = returnNewPublicKey();
                     SecretKeySpec secretKeySpec = UserMe.sharedKeys.get(chatWithID);
-                    sendChatMessage(msg, sender, receiver, timestamp, newPublicKey, chatType, chatNum, secretKeySpec, editText);
+
+                    //ENCRYPT MESSAGE
+                    String encodedParamsKeyString = null;
+                    try {
+                        Cipher bobCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                        bobCipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+                        byte[] ciphertext = bobCipher.doFinal(newPublicKey.getBytes(Charset.forName( "ISO-8859-1")));
+
+                        // Retrieve the parameter that was used, and transfer it to Alice in
+                        // encoded format
+                        byte[] encodedParams = bobCipher.getParameters().getEncoded();
+                        newPublicKey = new String(ciphertext,Charset.forName( "ISO-8859-1"));
+                        encodedParamsKeyString = new String(encodedParams, Charset.forName( "ISO-8859-1"));
+                    } catch (NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchPaddingException e) {
+                        e.printStackTrace();
+                    } catch (InvalidKeyException e) {
+                        e.printStackTrace();
+                    } catch (IllegalBlockSizeException e) {
+                        e.printStackTrace();
+                    } catch (BadPaddingException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
+                    sendChatMessage(msg, sender, receiver, timestamp,newPublicKey,encodedParamsKeyString, chatType, chatNum, secretKeySpec, editText);
                     return;
                 }
             }
@@ -207,7 +266,7 @@ public class ChatActivity extends AppCompatActivity {
 
     }
 
-    public void sendChatMessage(String msg, String sender, String receiver, long timestamp, String newPublicKey, boolean chatType, int chatNum, SecretKeySpec secretKeySpec, EditText editText) {
+    public void sendChatMessage(String msg, String sender, String receiver, long timestamp, String newPublicKey, String encodedParamsKeyString, boolean chatType, int chatNum, SecretKeySpec secretKeySpec, EditText editText) {
 
         DatabaseReference databaseSender = FirebaseDatabase.getInstance().getReference("chats").child(UserMe.USERME.ID).child(chatWithID);
         DatabaseReference databaseReceiver = FirebaseDatabase.getInstance().getReference("chats").child(chatWithID).child(UserMe.USERME.ID);
@@ -226,10 +285,10 @@ public class ChatActivity extends AppCompatActivity {
             String encodedParamsString = new String(encodedParams, "ISO-8859-1");
 
             //ENCRYPT public key
-            bobCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            bobCipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-            byte[] cipherkye = bobCipher.doFinal(newPublicKey.getBytes());
-            newPublicKey=new String(cipherkye, "ISO-8859-1");
+            //bobCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            //bobCipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            //byte[] cipherkye = bobCipher.doFinal(newPublicKey.getBytes());
+            //newPublicKey=new String(cipherkye, "ISO-8859-1");
 
 
 
@@ -239,7 +298,7 @@ public class ChatActivity extends AppCompatActivity {
             chatMessage.setReceiverID(receiver);
             chatMessage.setTimeStamp(timestamp);
             chatMessage.setEncodedParams(encodedParamsString);
-
+            chatMessage.setEncodedParamsKey(encodedParamsKeyString);
             chatMessage.setNewPublicKey(newPublicKey);
             chatMessage.setChatType(chatType);
             chatMessage.setChatNum(chatNum);
@@ -310,7 +369,7 @@ public class ChatActivity extends AppCompatActivity {
         return null;
     }
 
-    public void getReturnKey(byte[] bobPublicKey,String msg, String sender, String receiver, long timestamp, boolean chatType, int chatNum, EditText editText)
+    public void getReturnKey(byte[] bobPublicKey, String msg, String sender, String receiver, long timestamp, boolean chatType, int chatNum, EditText editText, SecretKeySpec oldsecretKeySpec)
     {
         /*
          * Let's turn over to Bob. Bob has received Alice's public key
@@ -321,6 +380,7 @@ public class ChatActivity extends AppCompatActivity {
         byte[] bobPubKeyEnc=null;
         KeyPair bobKpair = null;
 
+        String newPublicKey=null;
         try {
             KeyFactory bobKeyFac = KeyFactory.getInstance("DH");
             X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(bobPublicKey);
@@ -378,9 +438,34 @@ public class ChatActivity extends AppCompatActivity {
         saveInSharedPreference(chatNum, s);
 
 
+        byte[] ciphertext = new byte[0];
+        String encodedParamsKeyString = null;
+        try {
+            Cipher bobCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            bobCipher.init(Cipher.ENCRYPT_MODE, oldsecretKeySpec);
+            ciphertext = bobCipher.doFinal(bobPubKeyEnc);
+
+            // Retrieve the parameter that was used, and transfer it to Alice in
+            // encoded format
+            byte[] encodedParams = bobCipher.getParameters().getEncoded();
+            newPublicKey = new String(ciphertext, "ISO-8859-1");
+            encodedParamsKeyString = new String(encodedParams, "ISO-8859-1");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (NoSuchPaddingException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (BadPaddingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
-        sendChatMessage(msg,sender,receiver,timestamp,new String(bobPubKeyEnc,Charset.forName("ISO-8859-1")),chatType,chatNum,s,editText);
+        sendChatMessage(msg,sender,receiver,timestamp,newPublicKey, encodedParamsKeyString, chatType,chatNum,s,editText);
 
         // Bob encodes his public key, and sends it over to Alice.
 

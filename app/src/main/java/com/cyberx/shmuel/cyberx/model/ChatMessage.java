@@ -8,6 +8,7 @@ public class ChatMessage {
     String receiverID;
     String message;
     String encodedParams;
+    String encodedParamsKey;
     long timeStamp;
 
     public String getSenderID() {
@@ -72,5 +73,13 @@ public class ChatMessage {
 
     public void setNewPublicKey(String newPublicKey) {
         this.newPublicKey = newPublicKey;
+    }
+
+    public String getEncodedParamsKey() {
+        return encodedParamsKey;
+    }
+
+    public void setEncodedParamsKey(String encodedParamsKey) {
+        this.encodedParamsKey = encodedParamsKey;
     }
 }
