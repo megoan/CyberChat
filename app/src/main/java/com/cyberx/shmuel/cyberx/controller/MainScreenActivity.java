@@ -349,6 +349,7 @@ public class MainScreenActivity extends AppCompatActivity {
                 for (final DataSnapshot item : dataSnapshot.getChildren()) {
                     MyPublicKey key = item.getValue(MyPublicKey.class);
                     UserMe.gotAcceptkeys.add(key.sender);
+
                     DatabaseReference databaseRemoveKeys = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
                     databaseRemoveKeys.child(key.senderID).setValue(null);
                     if (UserMe.sharedKeys.get(key.senderID)==null) {

@@ -131,6 +131,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                         if (position > 0) {
                             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
                             String sharedKey = preferences.getString(message.getReceiverID() + message.getChatNum(), null);
+                            if (sharedKey==null)sharedKey = preferences.getString(message.getReceiverID(), null);
                             if (sharedKey != null) {
                                 byte[] encodedKey = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
                                 aliceCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(encodedKey, 0, 16, "AES"), aesParams);

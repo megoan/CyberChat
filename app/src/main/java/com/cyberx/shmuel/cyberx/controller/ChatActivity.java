@@ -188,6 +188,9 @@ public class ChatActivity extends AppCompatActivity {
                     else { //the message i sent was a request
                         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ChatActivity.this);
                         String sharedKey = preferences.getString(chatWithID + UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(), null);
+                        if(sharedKey==null)sharedKey =preferences.getString(chatWithID , null);
+                        //if(sharedKey==null)sharedKey =preferences.getString(UserMe.USERME.ID , null);
+                        //if(sharedKey==null)sharedKey =preferences.getString(UserMe.USERME.ID + UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(), null);
                         byte[] encodedKey = sharedKey.getBytes(Charset.forName("ISO-8859-1"));
                         SecretKeySpec secretKeySpec = new SecretKeySpec(encodedKey, 0, 16, "AES");
                         sendChatMessage(msg,sender,receiver,timestamp,UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getNewPublicKey(), UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getEncodedParamsKey(), UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).isChatType(),UserMe.lastChatMessageWithUser.get(UserMe.USERME.ID).getChatNum(),secretKeySpec,editText);
@@ -227,7 +230,11 @@ public class ChatActivity extends AppCompatActivity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(ChatActivity.this);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString(chatWithID,new String(secretKeySpec.getEncoded(),Charset.forName( "ISO-8859-1")));
+                    editor.putString(UserMe.USERME.ID,new String(secretKeySpec.getEncoded(),Charset.forName( "ISO-8859-1")));
+                    editor.apply();
 
                     sendChatMessage(msg, sender, receiver, timestamp,newPublicKey,encodedParamsKeyString, chatType, chatNum, secretKeySpec, editText);
                     return;
