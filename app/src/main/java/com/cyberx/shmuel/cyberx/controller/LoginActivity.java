@@ -2,7 +2,11 @@ package com.cyberx.shmuel.cyberx.controller;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -24,7 +28,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -42,8 +49,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText password;
     Button login;
     Button register;
-
-    Random random;
+    Button test;
     String key;
     String passwords;
     String id = UUID.randomUUID().toString();
@@ -51,6 +57,9 @@ public class LoginActivity extends AppCompatActivity {
     boolean foundUser=false;
     LinearLayout linearLayout;
     LinearLayout everything;
+    Random random=new Random();
+    TextView banch;
+    int passwordIterations;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,10 +70,38 @@ public class LoginActivity extends AppCompatActivity {
         register=findViewById(R.id.register);
         linearLayout=findViewById(R.id.prog);
         everything=findViewById(R.id.everything);
+        test=findViewById(R.id.test);
+        banch=findViewById(R.id.banch);
+        test.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new BackgroundAcceptRequest().execute();
+               /* final byte[] salt = new byte[8]; //Means 2048 bit
+                random.nextBytes(salt);
+                String p="Aa12345678";
+                final char[] password=p.toCharArray();
 
+                    Runnable runnable = new Runnable() {
+                        public void run() {
+                            try {
+                                LoginActivity.generateKey(password,salt,500000);
+                            } catch (NoSuchAlgorithmException e) {
+                                e.printStackTrace();
+                            } catch (InvalidKeySpecException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    };runnable.run();*/
+            }
+        });
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                View view = getCurrentFocus();
+                if (view != null) {
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
                 linearLayout.setVisibility(View.VISIBLE);
                 everything.setVisibility(View.GONE);
                 getUserListFromFirebase();
@@ -73,8 +110,10 @@ public class LoginActivity extends AppCompatActivity {
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 Intent intent =new Intent(LoginActivity.this,RegisterActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
 
@@ -92,47 +131,48 @@ public class LoginActivity extends AppCompatActivity {
                     User user = item.getValue(User.class);
                     String usernameText=username.getText().toString();
                     String passwordText=password.getText().toString();
+                    if(usernameText!=null && passwordText!=null && usernameText.equals(user.getUsername()))
                     if (user.getSalt()!=null) {
                         byte[] saltbytes=user.getSalt().getBytes(Charset.forName("ISO-8859-1"));
                         char[] pass=passwordText.toCharArray();
                         try {
-                            SecretKey secretKey=LoginActivity.generateKey(pass,saltbytes);
+                            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
+                            int iterations= Integer.parseInt(preferences.getString("passwordIterations","500000"));
+
+                            SecretKey secretKey=LoginActivity.generateKey(pass,saltbytes,iterations);
                             key=new String(secretKey.getEncoded(),Charset.forName("ISO-8859-1"));
+                            if(key==null)continue;
+                            else {
+                                if(key.equals(user.getPassword())){
+                                    foundUser=true;
+                                    Intent intent=new Intent(LoginActivity.this,MainScreenActivity.class);
+                                    intent.putExtra("username",user.getUsername());
+                                    intent.putExtra("id",user.ID);
+                                    UserMe.USERME.setUsername(user.getUsername());
+                                    UserMe.USERME.ID=user.ID;
+                                    linearLayout.setVisibility(View.GONE);
+                                    everything.setVisibility(View.VISIBLE);
+                                    startActivity(intent);
+                                    finish();
+
+                                    View view = getCurrentFocus();
+                                    if (view != null) {
+                                        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                                        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                                    }
+                                }
+                            }
                         } catch (NoSuchAlgorithmException e) {
                             e.printStackTrace();
                         } catch (InvalidKeySpecException e) {
                             e.printStackTrace();
                         }
                     }
-                    if(usernameText!=null && passwordText!=null && usernameText.equals(user.getUsername()) && key.equals(user.getPassword())/*&& (BCrypt.checkpw(passwordText, user.getPassword()))*/)
-                    {
-                        //new BackgroundAcceptRequest().execute(passwordText,user.getPassword(),usernameText,user.ID);
-
-                        foundUser=true;
-                        Intent intent=new Intent(LoginActivity.this,MainScreenActivity.class);
-                        intent.putExtra("username",user.getUsername());
-                        intent.putExtra("id",user.ID);
-                        UserMe.USERME.setUsername(user.getUsername());
-                        UserMe.USERME.ID=user.ID;
-                        startActivity(intent);
-                        linearLayout.setVisibility(View.GONE);
-                        everything.setVisibility(View.VISIBLE);
-                        View view = getCurrentFocus();
-                        if (view != null) {
-                            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                        }
-                       /* foundUser=true;
-                        Intent intent=new Intent(LoginActivity.this,MainScreenActivity.class);
-                        intent.putExtra("username",usernameText);
-                        intent.putExtra("id",user.ID);
-                        UserMe.USERME.setUsername(usernameText);
-                        UserMe.USERME.ID=user.ID;
-                        startActivity(intent);*/
-                    }
                 }
                 if (!foundUser) {
-                    //Toast.makeText(getBaseContext(),"wrong inputs",Toast.LENGTH_LONG).show();
+                    linearLayout.setVisibility(View.GONE);
+                    everything.setVisibility(View.VISIBLE);
+                    Toast.makeText(getBaseContext(),"wrong inputs",Toast.LENGTH_LONG).show();
                 }
             }
             @Override
@@ -142,51 +182,55 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    public class BackgroundAcceptRequest extends AsyncTask<String, Void, Boolean> {
-        String usern;
-        String useri;
+    public class BackgroundAcceptRequest extends AsyncTask<String, Void, Long> {
+
 
         @Override
-        protected Boolean doInBackground(String... strings) {
-            //usern=strings[2];
-            //useri=strings[3];
+        protected Long doInBackground(String... strings) {
+
+            final byte[] salt = new byte[8]; //Means 2048 bit
+            random.nextBytes(salt);
+            String p="Aa12345678";
+            final char[] password=p.toCharArray();
+            try {
+                Long tsLong = System.nanoTime();
+                LoginActivity.generateKey(password,salt,30000);
+                Long ttLong = System.nanoTime() - tsLong;
+                return  ttLong;
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (InvalidKeySpecException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             //return BCrypt.checkpw(strings[0], strings[1]);
-            return true;
+           return null;
         }
 
         @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            if(aBoolean)
-            {
-                foundUser=true;
-                Intent intent=new Intent(LoginActivity.this,MainScreenActivity.class);
-                intent.putExtra("username",usern);
-                intent.putExtra("id",useri);
-                UserMe.USERME.setUsername(usern);
-                UserMe.USERME.ID=useri;
-                startActivity(intent);
-                linearLayout.setVisibility(View.GONE);
-                everything.setVisibility(View.VISIBLE);
-                View view = getCurrentFocus();
-                if (view != null) {
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-                }
-            }
+        protected void onPostExecute(Long aBoolean) {
+            test.setBackgroundColor(Color.GREEN);
+            banch.setText(""+(aBoolean/10000000));
             super.onPostExecute(aBoolean);
         }
     }
-    public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
+
+    public static SecretKey generateKey(char[] passphraseOrPin, byte[] salt, int iterations) throws NoSuchAlgorithmException, InvalidKeySpecException {
         // Number of PBKDF2 hardening rounds to use. Larger values increase
         // computation time. You should select a value that causes computation
         // to take >100ms.
-        final int iterations = 200000;
 
-        // Generate a 256-bit key
-        final int outputKeyLength = 256;
-
-        SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
-        KeySpec keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, outputKeyLength);
+        SecretKeyFactory secretKeyFactory;
+        KeySpec keySpec;
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+        {
+            secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
+            keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, 512);
+        }else {
+            secretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+            keySpec = new PBEKeySpec(passphraseOrPin, salt, iterations, 160);
+        }
         SecretKey secretKey = secretKeyFactory.generateSecret(keySpec);
         return secretKey;
     }

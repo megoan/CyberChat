@@ -2,6 +2,8 @@ package com.cyberx.shmuel.cyberx.controller;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
@@ -124,6 +126,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                 @Override
                 public void onClick(View v) {
                     try {
+                        final String original=message.getMessage();
                         byte[] encodedParams = message.getEncodedParams().getBytes(Charset.forName("ISO-8859-1"));
                         AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
                         aesParams.init(encodedParams);
@@ -137,11 +140,27 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                                 aliceCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(encodedKey, 0, 16, "AES"), aesParams);
                                 byte[] recovered = aliceCipher.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
                                 messageText.setText(new String(recovered, "ISO-8859-1"));
+                                final Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // Do something after 5s = 5000ms
+                                       messageText.setText(original);
+                                    }
+                                }, 5000);
                             }
                         } else {
                             aliceCipher.init(Cipher.DECRYPT_MODE, UserMe.sharedKeys.get(message.getReceiverID()), aesParams);
                             byte[] recovered = aliceCipher.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
                             messageText.setText(new String(recovered, "ISO-8859-1"));
+                            final Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Do something after 5s = 5000ms
+                                    messageText.setText(original);
+                                }
+                            }, 5000);
                         }
 
                     } catch (NoSuchAlgorithmException e) {
@@ -196,6 +215,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                 @Override
                 public void onClick(View v) {
                     try {
+                        final String original=message.getMessage();
                         //if the message we clicked is a response and the rest of the messages aren't mine
                         if (message.isChatType() && restNotMine(position)) {
                             byte[] encodedKey = null;
@@ -276,6 +296,14 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                         aliceCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(encodedKey, 0, 16, "AES"), aesParams);
                         byte[] recovered = aliceCipher.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
                         messageText.setText(new String(recovered, "ISO-8859-1"));
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Do something after 5s = 5000ms
+                                messageText.setText(original);
+                            }
+                        }, 5000);
                     } catch (NoSuchAlgorithmException e) {
                         e.printStackTrace();
                     } catch (NoSuchPaddingException e) {
@@ -310,6 +338,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
 
 
             messageText.setText(message.getMessage());
+
             // Insert the profile image from the URL into the ImageView.
 
 

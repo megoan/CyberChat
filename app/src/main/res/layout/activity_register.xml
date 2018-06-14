@@ -8,6 +8,33 @@
     tools:context=".controller.RegisterActivity"
     android:orientation="vertical"
     android:padding="10dp">
+    <LinearLayout
+        android:id="@+id/prog"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+
+            />
+        <TextView
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Registering..."
+            android:textColor="@color/colorAccent"/>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/everything"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+
     <android.support.design.widget.TextInputLayout
         android:layout_marginLeft="10dp"
         android:layout_width="match_parent"
@@ -64,5 +91,10 @@
         android:layout_height="wrap_content"
         android:text="REGISTER"
         android:layout_marginTop="5dp"/>
-
+        <TextView
+            android:id="@+id/iterations"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textColor="@color/colorAccent"/>
+    </LinearLayout>
 </LinearLayout>
