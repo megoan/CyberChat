@@ -132,8 +132,8 @@ public class DHKeyAgreement2 {
          * passed to the Cipher.init() method.
          */
         System.out.println("Use shared secret as SecretKey object ...");
-        SecretKeySpec bobAesKey = new SecretKeySpec(bobSharedSecret, 0, 16, "AES");
-        SecretKeySpec aliceAesKey = new SecretKeySpec(aliceSharedSecret, 0, 16, "AES");
+        SecretKeySpec bobAesKey = new SecretKeySpec(bobSharedSecret, 0, 32, "AES");
+        SecretKeySpec aliceAesKey = new SecretKeySpec(aliceSharedSecret, 0, 32, "AES");
 
         /*
          * Bob encrypts, using AES in CBC mode

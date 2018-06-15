@@ -177,10 +177,9 @@ public class RegisterActivity extends AppCompatActivity {
             Long a=(aBoolean/10000000);
             passwordIterations*= (float)300/a;
             iterations.setText(String.valueOf(passwordIterations));
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(RegisterActivity.this);
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putString("passwordIterations", String.valueOf(passwordIterations));
-            editor.commit();
+
+            ReadWriteToFile.write("passwordIterations",String.valueOf(passwordIterations),true,RegisterActivity.this);
+
 
             super.onPostExecute(aBoolean);
         }
