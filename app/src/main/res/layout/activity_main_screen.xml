@@ -87,7 +87,7 @@
 />
         <!--android:iconifiedByDefault="false"-->
 
-     <!--   <Button
+       <!-- <Button
             android:id="@+id/sort"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -106,7 +106,7 @@
             android:layout_marginLeft="2dp"
             android:layout_weight="0"
             android:background="@drawable/mbutton"
-            android:onClick="onClickFilter"
+
             android:text="filter"
             android:drawableLeft="@drawable/ic_filter"/>-->
     </LinearLayout>

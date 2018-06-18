@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -56,17 +57,17 @@ public class LoginActivity extends AppCompatActivity {
     EditText username;
     EditText password;
     Button login;
-    Button register;
-    Button test;
+    TextView register;
+    //Button test;
     String key;
     String passwords;
     String id = UUID.randomUUID().toString();
     ArrayList<User> users = new ArrayList<>();
     boolean foundUser = false;
     LinearLayout linearLayout;
-    LinearLayout everything;
+    ConstraintLayout everything;
     Random random = new Random();
-    TextView banch;
+    //TextView banch;
 
     Button big;
     TextView bigtime;
@@ -82,22 +83,22 @@ public class LoginActivity extends AppCompatActivity {
         register = findViewById(R.id.register);
         linearLayout = findViewById(R.id.prog);
         everything = findViewById(R.id.everything);
-        test = findViewById(R.id.test);
-        banch = findViewById(R.id.banch);
-        big = findViewById(R.id.big);
-        bigtime = findViewById(R.id.bigtime);
+        //test = findViewById(R.id.test);
+       // banch = findViewById(R.id.banch);
+       // big = findViewById(R.id.big);
+       // bigtime = findViewById(R.id.bigtime);
 
-        big.setOnClickListener(new View.OnClickListener() {
+       /* big.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                     new BackgroundBig().execute();
             }
-        });
-        test.setOnClickListener(new View.OnClickListener() {
+        });*/
+       /* test.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new BackgroundAcceptRequest().execute();
-               /* final byte[] salt = new byte[8]; //Means 2048 bit
+               *//* final byte[] salt = new byte[8]; //Means 2048 bit
                 random.nextBytes(salt);
                 String p="Aa12345678";
                 final char[] password=p.toCharArray();
@@ -112,9 +113,9 @@ public class LoginActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
                         }
-                    };runnable.run();*/
+                    };runnable.run();*//*
             }
-        });
+        });*/
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -164,7 +165,8 @@ public class LoginActivity extends AppCompatActivity {
                                     iterations=UserMe.passwordIterations;
                                 }
                                 else {
-                                    iterations= Integer.parseInt(ReadWriteToFile.read("passwordIterations",LoginActivity.this));
+                                    String[] iter=ReadWriteToFile.read("passwordIterations",LoginActivity.this).split("\n");
+                                    iterations= Integer.parseInt(iter[0]);
                                 }
                                 //SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoginActivity.this);
                                //iterations = Integer.parseInt(preferences.getString("passwordIterations", "500000"));
@@ -241,8 +243,8 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Long aBoolean) {
-            test.setBackgroundColor(Color.GREEN);
-            banch.setText("" + (aBoolean / 10000000));
+            //test.setBackgroundColor(Color.GREEN);
+            //banch.setText("" + (aBoolean / 10000000));
             super.onPostExecute(aBoolean);
         }
     }

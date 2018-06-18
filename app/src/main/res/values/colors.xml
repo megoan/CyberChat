@@ -17,4 +17,5 @@
     <color name="foreground_material_light">#68ff77</color>
     <color name="yellow">#ffd30e</color>
     <color name="light_green_text">#c6ffc4</color>
+    <color name="whiteTransparent">#88ffffff</color>
 </resources>

@@ -35,6 +35,15 @@ public class ReadWriteToFile {
                 }
             }
         }
+        else {
+            try {
+                outputStream = context.openFileOutput(fileName,Context.MODE_PRIVATE | Context.MODE_APPEND);
+                outputStream.write(fileContent.getBytes());
+                outputStream.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        }
 
 
     }
@@ -51,12 +60,14 @@ public class ReadWriteToFile {
             sb = new StringBuilder();
             String line;
             while ((line = bufferedReader.readLine()) != null) {
-                sb.append(line);
+                sb.append(line+"\n");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        everything = sb.toString();
+        if (sb!=null) {
+            everything = sb.toString();
+        }
         return everything;
     }
 }

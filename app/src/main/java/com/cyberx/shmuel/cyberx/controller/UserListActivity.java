@@ -38,7 +38,7 @@ public class UserListActivity extends AppCompatActivity {
     //ArrayList<User> users=new ArrayList<>();
 
     UserAdapter userAdapter;
-    Button refresh;
+    //Button refresh;
     String usernameText;
     String ID;
     @Override
@@ -49,7 +49,7 @@ public class UserListActivity extends AppCompatActivity {
         usernameText = bundle.getStringExtra("username");
         ID = bundle.getStringExtra("ID");
         userRecyclerView=findViewById(R.id.userRecyclerView);
-        refresh=findViewById(R.id.refresh);
+        //refresh=findViewById(R.id.refresh);
         userRecyclerView.setHasFixedSize(true);
         linearLayoutManager = new LinearLayoutManager(UserListActivity.this);
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -57,12 +57,12 @@ public class UserListActivity extends AppCompatActivity {
         //getRequests();
         //getUserListFromFirebase();
 
-        refresh.setOnClickListener(new View.OnClickListener() {
+        /*refresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //getUserListFromFirebase();
             }
-        });
+        });*/
     }
 
     private void getRequests() {

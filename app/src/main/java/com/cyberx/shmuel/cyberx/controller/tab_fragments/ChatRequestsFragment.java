@@ -46,24 +46,24 @@ public class ChatRequestsFragment extends Fragment {
                              Bundle savedInstanceState) {
         inflater1=inflater;
         container1=container;
-        Button refreshButton;
+        //Button refreshButton;
         // Inflate the layout for this fragment
 
         view1=inflater.inflate(R.layout.activity_user_list, container, false);
         recyclerView= view1.findViewById(R.id.userRecyclerView);
-        refreshButton=view1.findViewById(R.id.refresh);
+        //refreshButton=view1.findViewById(R.id.refresh);
         //getRequests();
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(mAdapter);
 
-        refreshButton.setOnClickListener(new View.OnClickListener() {
+       /* refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 getRequests();
             }
-        });
+        });*/
 
 
         return view1;

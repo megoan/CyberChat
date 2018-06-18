@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.cyberx.shmuel.cyberx.R;
+import com.cyberx.shmuel.cyberx.controller.MainScreenActivity;
+import com.cyberx.shmuel.cyberx.controller.ReadWriteToFile;
 import com.cyberx.shmuel.cyberx.controller.UserAdapter;
 import com.cyberx.shmuel.cyberx.controller.UserListActivity;
 import com.cyberx.shmuel.cyberx.model.MyPublicKey;
@@ -29,6 +31,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -40,6 +43,8 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -61,7 +66,7 @@ public class UserListFragment extends Fragment {
     View view1;
     LayoutInflater inflater1;
     ViewGroup container1;
-    ArrayList<User>  users=new ArrayList<>();
+    public static ArrayList<User> users = new ArrayList<>();
     private String usernameReceiver;
 
     public UserListFragment() {
@@ -72,32 +77,32 @@ public class UserListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        inflater1=inflater;
-        container1=container;
-        Button refreshButton;
+        inflater1 = inflater;
+        container1 = container;
+        //Button refreshButton;
         // Inflate the layout for this fragment
 
-        view1=inflater.inflate(R.layout.activity_user_list, container, false);
-        recyclerView= view1.findViewById(R.id.userRecyclerView);
-        refreshButton=view1.findViewById(R.id.refresh);
-       // getAccepts();
-       // getRequests();
-       // getUserListFromFirebase();
+        view1 = inflater.inflate(R.layout.activity_user_list, container, false);
+        recyclerView = view1.findViewById(R.id.userRecyclerView);
+        //refreshButton=view1.findViewById(R.id.refresh);
+        // getAccepts();
+        // getRequests();
+        // getUserListFromFirebase();
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(mAdapter);
 
-        refreshButton.setOnClickListener(new View.OnClickListener() {
+       /* refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getAccepts();
-                sentAccepts();
-                getRequests();
+               // getAccepts();
+               // sentAccepts();
+               // getRequests();
             }
         });
-
+*/
         return view1;
     }
 
@@ -126,8 +131,8 @@ public class UserListFragment extends Fragment {
     private void getAccepts() {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeBReceiver").child(UserMe.USERME.ID);
         final DatabaseReference databaseRemoveKeys = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
-        
-        database.addValueEventListener(new ValueEventListener() {
+
+        database.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 UserMe.gotAcceptkeys.clear();
@@ -149,7 +154,7 @@ public class UserListFragment extends Fragment {
 
     private void getRequests() {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference("keys").child("keyexchangeTypeASender").child(UserMe.USERME.ID);
-        database.addValueEventListener(new ValueEventListener() {
+        database.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //UserMe.sentRequestkeys.clear();
@@ -170,7 +175,7 @@ public class UserListFragment extends Fragment {
 
                             }
                         }
-                        mAdapter = new UserAdapter(getActivity(), UserMe.usersUsingApp,UserMe.USERME.getUsername(),UserMe.USERME.ID);
+                        mAdapter = new UserAdapter(getActivity(), UserMe.usersUsingApp, UserMe.USERME.getUsername(), UserMe.USERME.ID);
                         recyclerView.setAdapter(mAdapter);
                     }
 
@@ -180,6 +185,7 @@ public class UserListFragment extends Fragment {
                     }
                 });
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
@@ -188,65 +194,24 @@ public class UserListFragment extends Fragment {
     }
 
 
+
+
     public class BackgroundAcceptRequest extends AsyncTask<MyPublicKey, Void, byte[]> {
 
         @Override
         protected byte[] doInBackground(MyPublicKey... keys) {
-            byte[] bobPubKeyEnc=null;
-            try {
-                KeyFactory bobKeyFac = KeyFactory.getInstance("DH");
-                X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(keys[0].pubKey.getBytes(Charset.forName("ISO-8859-1")));
-                PublicKey alicePubKey = bobKeyFac.generatePublic(x509KeySpec);
-                /*
-                 * Bob gets the DH parameters associated with Alice's public key.
-                 * He must use the same parameters when he generates his own key
-                 * pair.
-                 */
-                DHParameterSpec dhParamFromAlicePubKey = ((DHPublicKey)alicePubKey).getParams();
-                // Bob creates his own DH key pair
-                System.out.println("BOB: Generate DH keypair ...");
-                KeyPairGenerator bobKpairGen = KeyPairGenerator.getInstance("DH");
-                bobKpairGen.initialize(dhParamFromAlicePubKey);
-                KeyPair bobKpair = bobKpairGen.generateKeyPair();
-                // Bob creates and initializes his DH KeyAgreement object
-                System.out.println("BOB: Initialization ...");
-                KeyAgreement bobKeyAgree = KeyAgreement.getInstance("DH");
-                bobKeyAgree.init(bobKpair.getPrivate());
-                // Bob encodes his public key, and sends it over to Alice.
-                bobPubKeyEnc = bobKpair.getPublic().getEncoded();
+            byte[] bobPubKeyEnc = null;
+            //try {
 
-                 /*
-         * Bob uses Alice's public key for the first (and only) phase
-         * of his version of the DH
-         * protocol.
-         */
-                System.out.println("BOB: Execute PHASE1 ...");
-                bobKeyAgree.doPhase(alicePubKey, true);
+            String[] r = ReadWriteToFile.read(keys[0].sender + "_keys", getContext()).split("\n");
+            String[] sp = r[0].split(" ");
+            BigInteger k2 = new BigInteger(keys[0].pubKey).modPow(new BigInteger(sp[1]), UserMe.p);
+            ReadWriteToFile.write(keys[0].sender + "_sharedkeys", "chatID0 " + String.valueOf(k2) + '\n', false, getContext());
+            UserMe.userSharedKeys.put(keys[0].sender = " chatID0", String.valueOf(k2));
 
-                byte[] bobSharedSecret=null;
-
-                int bobLen;
-
-
-                bobSharedSecret = bobKeyAgree.generateSecret();
-                System.out.println("Bob secret: " +
-                        toHexString(bobSharedSecret));
-
-
-                SecretKeySpec bobAesKey = new SecretKeySpec(bobSharedSecret, 0, 16, "AES");
-                UserMe.sharedKeys.put(keys[0].recieverID,bobAesKey);
-                UserMe.finalAcceptedChats.add(keys[0].receiver);
-
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (InvalidKeySpecException e) {
-                e.printStackTrace();
-            } catch (InvalidAlgorithmParameterException e) {
-                e.printStackTrace();
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-            }
-
+            SecretKeySpec bobAesKey = new SecretKeySpec(k2.toByteArray(), 0, 32, "AES");
+            UserMe.sharedKeys.put(keys[0].recieverID, bobAesKey);
+            UserMe.finalAcceptedChats.add(keys[0].receiver);
 
             return bobPubKeyEnc;
         }
@@ -261,7 +226,7 @@ public class UserListFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-           
+
         }
     }
 }

@@ -5,6 +5,7 @@ public class User {
     String username;
     String password;
     String salt;
+    String imageUrl;
 
     public User(){}
     public User(String usernameString, String passwordString,String salt) {
@@ -12,7 +13,12 @@ public class User {
         password=passwordString;
         this.salt=salt;
     }
-
+    public User(User user){
+        this.ID=user.ID;
+        this.username=user.username;
+        this.password=user.password;
+        this.salt=user.salt;
+    }
     public String getUsername() {
         return username;
     }
@@ -35,5 +41,13 @@ public class User {
 
     public void setSalt(String salt) {
         this.salt = salt;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

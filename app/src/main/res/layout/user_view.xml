@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
-
+    android:orientation="horizontal">
+<de.hdodenhof.circleimageview.CircleImageView
+    android:id="@+id/usercolor"
+    app:civ_border_color="@android:color/white"
+    app:civ_border_width="2dp"
+    android:src="@drawable/ic_user_green"
+    android:paddingTop="20dp"
+    android:paddingStart="10dp"
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:paddingBottom="20dp"/>
     <TextView
         android:id="@+id/textView"
         android:layout_width="fill_parent"
@@ -14,6 +25,7 @@
         android:paddingBottom="20dp"
         android:paddingStart="10dp"
         android:textSize="20sp"
+        android:text="shmuel"
         android:textColor="@android:color/holo_red_dark"
         tools:ignore="RtlCompat" />
 </LinearLayout>
