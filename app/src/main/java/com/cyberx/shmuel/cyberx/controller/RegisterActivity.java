@@ -177,6 +177,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         public void onSuccess(Void aVoid) {
                                             mDatabase.child(userId).child("ID").setValue(userId);
                                             Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                            ReadWriteToFile.write("passwordIterations",String.valueOf(passwordIterations),true,RegisterActivity.this);
                                             startActivity(intent);
                                             finish();
                                 }
@@ -317,9 +318,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         @Override
         protected Long doInBackground(String... strings) {
-            //usern=strings[2];
-            //useri=strings[3];
-            final byte[] salt = new byte[8]; //Means 2048 bit
+            final byte[] salt = new byte[32];
             random.nextBytes(salt);
             String p="Aa12345678";
             final char[] password=p.toCharArray();
@@ -349,7 +348,7 @@ public class RegisterActivity extends AppCompatActivity {
             passwordIterations*= (float)300/a;
             //iterations.setText(String.valueOf(passwordIterations));
 
-            ReadWriteToFile.write("passwordIterations",String.valueOf(passwordIterations),true,RegisterActivity.this);
+
 
 
             super.onPostExecute(aBoolean);

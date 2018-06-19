@@ -221,7 +221,7 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected Long doInBackground(String... strings) {
 
-            final byte[] salt = new byte[8]; //Means 2048 bit
+            final byte[] salt = new byte[32];
             random.nextBytes(salt);
             String p = "Aa12345678";
             final char[] password = p.toCharArray();
