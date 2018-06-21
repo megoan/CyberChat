@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -61,6 +62,7 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
     String receiverID;
     int position;
     private ProgressDialog progDailog;
+    String encodedParams;
     private MyFilter myFilter;
 
     public ChatRequestAdapter(Context context, ArrayList<MyPublicKey> users) {
@@ -88,6 +90,7 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
                 String usern = users.get(position).pubKey;
                 usernameReceiver = users.get(position).sender;
                 receiverID = users.get(position).senderID;
+                encodedParams=users.get(position).aesParams;
                 new BackgroundAcceptRequest().execute(usern);
 
 
@@ -133,10 +136,38 @@ public class ChatRequestAdapter extends RecyclerView.Adapter<ChatRequestAdapter.
         @Override
         protected byte[] doInBackground(String... strings) {
 
+
+            String aKey=null;
+            byte[] encodedParams2 = encodedParams.getBytes(Charset.forName("ISO-8859-1"));
+            byte[] recovered = new byte[0];
+            try {
+                AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
+                aesParams.init(encodedParams2);
+                Cipher aliceCipher2 = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                aliceCipher2.init(Cipher.DECRYPT_MODE, new SecretKeySpec(UserMe.firstKey, 0, 32, "AES"), aesParams);
+                recovered = aliceCipher2.doFinal(strings[0].getBytes(Charset.forName("ISO-8859-1")));
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            }
+            aKey=(new String(recovered, Charset.forName("ISO-8859-1")));
+
+
             BigInteger x = UserMe.generatePrivateKey();
             R1 = UserMe.g.modPow(x, UserMe.p);
 
-            BigInteger k2 = new BigInteger(strings[0]).modPow(x, UserMe.p);
+            BigInteger k2 = new BigInteger(aKey).modPow(x, UserMe.p);
             ReadWriteToFile.write(usernameReceiver + "_sharedkeys", "chatID0 " + String.valueOf(k2) + '\n', false, context);
             UserMe.userSharedKeys.put(usernameReceiver + " chatID0", String.valueOf(k2));
             ReadWriteToFile.write("acceptLevel", usernameReceiver + "\n", false, context);

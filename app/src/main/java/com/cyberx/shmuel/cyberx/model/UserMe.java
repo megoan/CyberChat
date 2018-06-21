@@ -6,6 +6,7 @@ import com.cyberx.shmuel.cyberx.controller.ChatRequestAdapter;
 import com.cyberx.shmuel.cyberx.controller.UserAdapter;
 
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +58,6 @@ public class UserMe {
     public static ArrayList<String> gotRequest=new ArrayList<>();
     public static ArrayList<String> sentRequest=new ArrayList<>();
 
-
+    public static byte[] firstKey = "127399629618101871061164714369415138889690993275437627420444094492320543272307283661358790533838050723166537248941870298278768240542968408532693894495600991462888770154271773743688518108469133360749226067433284253841524878382663213020300439013395051660095465213244114983915020095532593844192661702194876809221".getBytes(Charset.forName("ISO-8859-1"));
 
 }

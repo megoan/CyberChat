@@ -127,6 +127,7 @@ public class RegisterActivity extends AppCompatActivity {
                    // String hashed = BCrypt.hashpw(passwordString, BCrypt.gensalt());
                     if(mBitmap==null){
                         Toast.makeText(RegisterActivity.this,"don't be shy and upload an image!",Toast.LENGTH_LONG).show();
+                        return;
                     }
                     DatabaseReference database = FirebaseDatabase.getInstance().getReference("users");
 

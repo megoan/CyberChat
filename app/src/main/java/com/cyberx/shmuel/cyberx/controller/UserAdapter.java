@@ -29,8 +29,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.squareup.picasso.Picasso;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -40,7 +42,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyAgreement;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> implements Filterable {
 
@@ -53,6 +60,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
     boolean requested;
     private DatabaseReference mDatabase;
     private MyFilter myFilter;
+    private MyFilterAccepted myFilterAccepted;
 
     public UserAdapter(Context context, ArrayList<User> users, String username, String ID) {
         inflater = LayoutInflater.from(context);
@@ -196,6 +204,10 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
         return myFilter;
     }
 
+    public Filter getFilter(int i){
+        if (myFilterAccepted == null) myFilterAccepted = new MyFilterAccepted();
+        return myFilterAccepted;
+    }
     class MyViewHolder extends RecyclerView.ViewHolder {
         TextView username;
         ImageView imageView;
@@ -223,7 +235,44 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
             String key = String.valueOf(R1);
 
 
-            MyPublicKey publicKey = new MyPublicKey(key, UserMe.USERME.getUsername(), strings[0], UserMe.USERME.ID, strings[1]);
+
+            SecretKeySpec s=new SecretKeySpec(UserMe.firstKey, 0, 32, "AES");
+            //    saveInSharedPreference(chatNum, s);
+
+
+            byte[] ciphertext;
+            String encodedParamsKeyString = null;
+            try {
+                Cipher bobCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+                bobCipher.init(Cipher.ENCRYPT_MODE, s);
+                ciphertext = bobCipher.doFinal(key.getBytes(Charset.forName("ISO-8859-1")));
+
+
+                // Retrieve the parameter that was used, and transfer it to Alice in
+                // encoded format
+                byte[] encodedParams = bobCipher.getParameters().getEncoded();
+                key = new String(ciphertext, "ISO-8859-1");
+                encodedParamsKeyString = new String(encodedParams, "ISO-8859-1");
+
+                //newPublicKey=String.valueOf(R1);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            } catch (NoSuchPaddingException e) {
+                e.printStackTrace();
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException e) {
+                e.printStackTrace();
+            } catch (BadPaddingException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+
+
+            MyPublicKey publicKey = new MyPublicKey(key, UserMe.USERME.getUsername(), strings[0], UserMe.USERME.ID, strings[1],encodedParamsKeyString);
 
             mDatabase = FirebaseDatabase.getInstance().getReference().child("keys").child("keyexchangeTypeAReceiver");
             //final String keyId = mDatabase.push().getKey();
@@ -273,8 +322,60 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.MyViewHolder> 
                 ArrayList<User> filteredUsers = new ArrayList<>();
                 for (User user : UserMe.usersUsingApp) {
 
-                    String fullAddress = (user.getUsername());
-                    if (fullAddress.contains(charSequence.toString().toLowerCase()) || charSequence.toString().contains(user.getUsername())) {
+                    if(charSequence.toString().equals("accepted")||charSequence.toString().equals("ACCEPTED"))
+                    {
+                        if(UserMe.acceptLevel.contains(user.getUsername()))
+                        {
+                            filteredUsers.add(user);
+                        }
+                    }
+                    else if(charSequence.toString().equals("request")||charSequence.toString().equals("REQUEST"))
+                    {
+                        if(UserMe.sentRequest.contains(user.getUsername()) || UserMe.gotRequest.contains(user.getUsername()))
+                        {
+                            filteredUsers.add(user);
+                        }
+                    }
+                    else
+                    {
+                        String fullAddress = (user.getUsername());
+                        if (fullAddress.toLowerCase().contains(charSequence.toString().toLowerCase()) || charSequence.toString().toLowerCase().contains(user.getUsername().toLowerCase())) {
+                            // if `contains` == true then add it
+                            // to our filtered list
+                            filteredUsers.add(user);
+                        }
+                    }
+
+                }
+                results.values = filteredUsers;
+                results.count = filteredUsers.size();
+            }
+
+            return results;
+        }
+
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+            users = new ArrayList<>((ArrayList<User>) results.values);
+            notifyDataSetChanged();
+        }
+    }
+
+    private class MyFilterAccepted extends Filter {
+        FilterResults results;
+
+        @Override
+        protected FilterResults performFiltering(CharSequence charSequence) {
+            results = new FilterResults();
+            if (charSequence == null || charSequence.length() == 0) {
+                results.values = UserMe.usersUsingApp;
+                results.count = UserMe.usersUsingApp.size();
+            } else {
+                ArrayList<User> filteredUsers = new ArrayList<>();
+                for (User user : UserMe.usersUsingApp) {
+
+
+                    if (UserMe.acceptLevel.contains(user.getUsername())) {
                         // if `contains` == true then add it
                         // to our filtered list
                         filteredUsers.add(user);

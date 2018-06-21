@@ -133,6 +133,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                         AlgorithmParameters aesParams = AlgorithmParameters.getInstance("AES");
                         aesParams.init(encodedParams);
                         Cipher aliceCipher2 = Cipher.getInstance("AES/CBC/PKCS5Padding");
+
                         original=message.getMessage();
                         if(true)
                         {
@@ -149,6 +150,14 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                             aliceCipher2.init(Cipher.DECRYPT_MODE, new SecretKeySpec((finalsharedKey).getBytes(Charset.forName("ISO-8859-1")), 0, 32, "AES"), aesParams);
                             byte[] recovered = aliceCipher2.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
                             messageText.setText(new String(recovered, Charset.forName("ISO-8859-1")));
+                            final Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Do something after 5s = 5000ms
+                                    messageText.setText(original);
+                                }
+                            }, 5000);
                             return;
                         }
 
@@ -218,6 +227,14 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                                 aliceCipher2.init(Cipher.DECRYPT_MODE, new SecretKeySpec(checkKey.getBytes(Charset.forName("ISO-8859-1")), 0, 32, "AES"), aesParams);
                                 byte[] recovered = aliceCipher2.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
                                 messageText.setText(new String(recovered, "ISO-8859-1"));
+                                final Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // Do something after 5s = 5000ms
+                                        messageText.setText(original);
+                                    }
+                                }, 5000);
                                 return;
                             }
                             else {
@@ -238,14 +255,32 @@ public class MessageListAdapter extends RecyclerView.Adapter {
 
                                 aliceCipher2.init(Cipher.DECRYPT_MODE, new SecretKeySpec(String.valueOf(k2).getBytes(Charset.forName("ISO-8859-1")), 0, 32, "AES"), aesParams);
                                 byte[] recoveredFinally = aliceCipher2.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
+
                                 messageText.setText(new String(recoveredFinally, "ISO-8859-1"));
+                                final Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        // Do something after 5s = 5000ms
+                                        messageText.setText(original);
+                                    }
+                                }, 5000);
                                 return;
                             }
                         }
                         else if(!message.isChatType()){
                             aliceCipher2.init(Cipher.DECRYPT_MODE, new SecretKeySpec(UserMe.userSharedKeys.get(chatWithUserName+" chatID"+message.getChatNum()).getBytes(Charset.forName("ISO-8859-1")), 0, 32, "AES"), aesParams);
                             byte[] recovered = aliceCipher2.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
+
                             messageText.setText(new String(recovered, "ISO-8859-1"));
+                            final Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Do something after 5s = 5000ms
+                                    messageText.setText(original);
+                                }
+                            }, 5000);
                             return;
                         }
                         if(!beforeIsentaMessageOnlyHis(position))
@@ -253,6 +288,14 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                             aliceCipher2.init(Cipher.DECRYPT_MODE, new SecretKeySpec(UserMe.userSharedKeys.get(chatWithUserName+" chatID0").getBytes(Charset.forName("ISO-8859-1")), 0, 32, "AES"), aesParams);
                             byte[] recovered = aliceCipher2.doFinal(message.getMessage().getBytes(Charset.forName("ISO-8859-1")));
                             messageText.setText(new String(recovered, "ISO-8859-1"));
+                            final Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    // Do something after 5s = 5000ms
+                                    messageText.setText(original);
+                                }
+                            }, 5000);
                             return;
                         }
                         //if the message we clicked is a response and the rest of the messages aren't mine
