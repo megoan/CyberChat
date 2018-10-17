@@ -107,12 +107,13 @@
     android:background="@drawable/gradient"
     android:focusableInTouchMode="true"
     tools:context=".controller.RegisterActivity"
-    tools:layout_editor_absoluteY="81dp">
+    tools:layout_editor_absoluteY="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="center">
 
         <LinearLayout
             android:id="@+id/prog"
@@ -136,16 +137,15 @@
                 android:text="Regestering..."
                 android:textColor="@color/colorAccent" />
         </LinearLayout>
-        <android.support.constraint.ConstraintLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
+
+        <LinearLayout
             android:id="@+id/everything"
-            xmlns:tools="http://schemas.android.com/tools"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:focusableInTouchMode="true"
-            tools:context="com.hionthefly.user.check_mate.controller.EditProfileActivity"
-            tools:layout_editor_absoluteY="81dp">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_gravity="center"
+            android:gravity="center">
+
 
             <LinearLayout
                 android:id="@+id/linearLayout"
@@ -157,14 +157,11 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:layout_gravity="center">
+
 
 
                     <de.hdodenhof.circleimageview.CircleImageView
+                        android:layout_gravity="center"
                         android:id="@+id/imageView"
                         android:layout_width="156dp"
                         android:layout_height="156dp"
@@ -182,7 +179,7 @@
                         android:layout_height="wrap_content"
                         android:layout_centerHorizontal="true"
                         android:layout_centerVertical="true" />-->
-                </RelativeLayout>
+
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -293,6 +290,6 @@
 
                 </LinearLayout>
             </ScrollView>
-        </android.support.constraint.ConstraintLayout>
+    </LinearLayout>
     </LinearLayout>
 </ScrollView>

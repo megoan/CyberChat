@@ -65,7 +65,7 @@ public class RegisterActivity extends AppCompatActivity {
     String BPpassword;
     Random random=new Random();
     int passwordIterations=30000;
-    ConstraintLayout everything;
+    LinearLayout everything;
     float factor;
     LinearLayout linearLayout;
 
